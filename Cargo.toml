@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 ciborium = "0.2.2"
 futures-lite = "2.6.1"
-lapin = "4.1.0"
+lapin = {version = "4.1.0", default-features = false}
 mindurka-rabbitmq-rust-macro = { version = "0.1.0", path = "mindurka-rabbitmq-rust-macro" }
 serde = "1.0.228"
 tokio = "1.50.0"
