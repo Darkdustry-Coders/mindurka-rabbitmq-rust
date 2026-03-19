@@ -4,8 +4,8 @@ use futures_lite::StreamExt;
 use lapin::{
     Channel, Connection, ConnectionProperties, Error,
     options::{
-        BasicConsumeOptions, BasicNackOptions, BasicPublishOptions, ExchangeDeclareOptions,
-        QueueBindOptions, QueueDeclareOptions,
+        BasicAckOptions, BasicConsumeOptions, BasicNackOptions, BasicPublishOptions,
+        ExchangeDeclareOptions, QueueBindOptions, QueueDeclareOptions,
     },
     protocol::basic::AMQPProperties,
     types::FieldTable,
@@ -221,12 +221,20 @@ async fn poll_from_service<T: NetworkEvent + DeserializeOwned + 'static>(
             Ok(data) => {
                 let meta = RabbitReceiveMetadata {
                     data,
-                    metadata: delivery.properties,
+                    metadata: delivery.properties.clone(),
                 };
                 match sender.send(meta) {
-                    Ok(_) => {}
+                    Ok(_) => {
+                        let _ = delivery.ack(BasicAckOptions { multiple: false }).await;
+                    }
                     Err(_) => {
                         // All receivers closed, so we can stop consuming
+                        let _ = delivery
+                            .nack(BasicNackOptions {
+                                multiple: false,
+                                requeue: false,
+                            })
+                            .await;
                         let _ = channel.close(0, "".into()).await;
                         return;
                     }
