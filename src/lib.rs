@@ -321,7 +321,7 @@ async fn ensure_exchange(
     channel
         .exchange_declare(
             format!("main.{}", exchange).into(),
-            lapin::ExchangeKind::Fanout,
+            lapin::ExchangeKind::Topic,
             ExchangeDeclareOptions {
                 durable: true,
                 auto_delete: false,
